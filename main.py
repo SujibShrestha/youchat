@@ -2,7 +2,8 @@ from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 from llm import llm
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
-
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
+from langchain_core.output_parsers import StrOutputParser
 from chunk import chunk_text
 import embeddings
 
@@ -45,12 +46,36 @@ You are a helpful assistant. Use the following context to answer the question.
 question = "What is the main topic of the video?"
 result = retriever.invoke(question)
 
-context = "\n".join([doc.page_content for doc in result["documents"]])
+# context = "\n".join([doc.page_content for doc in result]) 
 
-final_prompt = prompt.invoke(context=context, question=question)
+# final_prompt = prompt.invoke({"context": context, "question": question})
 
 # Genration
 
-answer =llm.invoke(final_prompt)
+# answer =llm.invoke(final_prompt)
 
-print("Answer:", answer)
+# print("Answer:", answer.content)
+
+
+# Chains
+def format_docs(result):
+    context = "\n".join([doc.page_content for doc in result])
+    return context
+
+parallel_chain= RunnableParallel(
+    {
+        'context': retriever | RunnableLambda(format_docs),
+        'question': RunnablePassthrough()
+    }
+
+)
+
+parallel_result = parallel_chain.invoke(question)
+
+parser = StrOutputParser()
+
+main_chain = parallel_chain | prompt | llm | parser
+
+result = main_chain.invoke(question)
+
+print("Answer:", result)

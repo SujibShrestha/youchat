@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "YouChat",
+  "version": "1.0.0",
+  "description": "Ask questions against your local YouChat API.",
+  "action": {
+    "default_title": "YouChat",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
+    "https://www.youtube.com/*",
+    "https://youtube.com/*",
+    "https://youtu.be/*"
+  ]
+}

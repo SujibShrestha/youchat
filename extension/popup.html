@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YouChat</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <p>LOCAL RAG</p>
+        <h1>YouChat</h1>
+      </header>
+
+      <div id="status">localhost:8000</div>
+
+      <form id="question-form">
+        <label for="question">Question</label>
+        <textarea id="question" rows="4" placeholder="Ask about this YouTube video"></textarea>
+        <button id="ask-button" type="submit">Ask</button>
+      </form>
+
+      <section>
+        <h2>Answer</h2>
+        <p id="answer">No answer yet.</p>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

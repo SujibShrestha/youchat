@@ -13,6 +13,47 @@ YouChat is a local FastAPI app plus a browser extension that lets you ask questi
 - Answers questions with Groq through LangChain.
 - Provides a Chrome/Edge extension popup with a neo-brutalist UI.
 
+## System Architecture
+
+```text
+YouTube Page
+    |
+    | active tab URL
+    v
+Browser Extension
+    |
+    | POST /question
+    | { question, video_id }
+    v
+FastAPI Backend
+    |
+    | fetch transcript
+    v
+youtube-transcript-api
+    |
+    | transcript text
+    v
+LangChain Text Splitter
+    |
+    | chunks
+    v
+Hugging Face Embeddings
+    |
+    | vectors
+    v
+FAISS Vector Store
+    |
+    | relevant context
+    v
+Prompt + Groq LLM
+    |
+    | answer
+    v
+Browser Extension Popup
+```
+
+The extension reads the video ID from the active YouTube tab and sends it with the user's question. The FastAPI backend fetches the transcript for that video, chunks it, embeds it, stores it in FAISS, retrieves the most relevant chunks, and sends the final prompt to the LLM. When the video ID changes, the backend rebuilds the retrieval chain for the new video.
+
 ## Project Structure
 
 ```text

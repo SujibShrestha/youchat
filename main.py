@@ -4,6 +4,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from chunk import chunk_text
 import embeddings
 
@@ -43,20 +45,6 @@ You are a helpful assistant. Use the following context to answer the question.
     input_variables=["context", "question"]
 )
 
-question = "What is the main topic of the video?"
-result = retriever.invoke(question)
-
-# context = "\n".join([doc.page_content for doc in result]) 
-
-# final_prompt = prompt.invoke({"context": context, "question": question})
-
-# Genration
-
-# answer =llm.invoke(final_prompt)
-
-# print("Answer:", answer.content)
-
-
 # Chains
 def format_docs(result):
     context = "\n".join([doc.page_content for doc in result])
@@ -70,12 +58,42 @@ parallel_chain= RunnableParallel(
 
 )
 
-parallel_result = parallel_chain.invoke(question)
-
 parser = StrOutputParser()
 
 main_chain = parallel_chain | prompt | llm | parser
+app = FastAPI()
 
-result = main_chain.invoke(question)
+last_question = None
+last_answer = None
 
-print("Answer:", result)
+
+class QuestionRequest(BaseModel):
+    question: str
+
+
+def answer_question(question):
+    return main_chain.invoke(question)
+
+
+@app.get("/answer")
+def get_answer():
+    return {"question": last_question, "answer": last_answer}
+
+
+@app.post("/question")
+def post_question(request: QuestionRequest):
+    global last_question, last_answer
+
+    question = request.question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question is required")
+
+    last_question = question
+    last_answer = answer_question(question)
+    return {"question": last_question, "answer": last_answer}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="localhost", port=8000)
